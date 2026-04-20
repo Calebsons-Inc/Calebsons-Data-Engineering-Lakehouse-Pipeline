@@ -1,0 +1,8 @@
+Order ID,Customer Name,Category,Value USD,Status,Order Date
+1,Alice Johnson,Office,120.50,active,2026-04-01
+2,Bob Smith,Office,85.00,active,2026-04-02
+3,Carla Gomez,Hardware,210.00,active,2026-04-03
+4,David Lee,Software,-15.00,active,2026-04-04
+5,Ella Brown,Software,300.25,inactive,2026-04-05
+6,Frank Hall,Hardware,99.99,active,2026-04-06
+7,Grace Kim,Office,45.75,active,2026-04-07

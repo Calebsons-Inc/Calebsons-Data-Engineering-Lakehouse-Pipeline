@@ -1,0 +1,21 @@
+name: calebsons_lakehouse_pipeline
+version: 1.0.0
+config-version: 2
+
+profile: calebsons_lakehouse_pipeline
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  calebsons_lakehouse_pipeline:
+    +materialized: view
+    silver:
+      +schema: analytics
+    gold:
+      +materialized: table
+      +schema: marts
