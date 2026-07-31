@@ -6,17 +6,17 @@ from pathlib import Path
 import duckdb
 import polars as pl
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = PROJECT_ROOT / "data"
-RAW_DIR = DATA_DIR / "raw"
-BRONZE_DIR = DATA_DIR / "bronze"
+from config.sources import BRONZE_DIR, DATA_DIR, PROJECT_ROOT, RAW_DIR, get_source
+
 SILVER_DIR = DATA_DIR / "silver"
 GOLD_DIR = DATA_DIR / "gold"
 WAREHOUSE_DIR = PROJECT_ROOT / "warehouse"
 WAREHOUSE_PATH = WAREHOUSE_DIR / "lakehouse.duckdb"
 
-RAW_CSV_PATH = RAW_DIR / "sales_orders.csv"
-BRONZE_PARQUET_PATH = BRONZE_DIR / "sales_orders.parquet"
+# Paths come from the raw source contract (config/sources.py).
+_PRIMARY_SOURCE = get_source("sales_orders")
+RAW_CSV_PATH = _PRIMARY_SOURCE.raw_path
+BRONZE_PARQUET_PATH = _PRIMARY_SOURCE.bronze_path
 SILVER_PARQUET_PATH = SILVER_DIR / "sales_orders.parquet"
 GOLD_PARQUET_PATH = GOLD_DIR / "category_summary.parquet"
 

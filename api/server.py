@@ -10,13 +10,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.scenarios import get_scenario_config, list_scenario_meta, scenario_layer_paths
 from api.stack_status import build_stack_status
+from config.sources import get_source, summarize_contracts
 from transformations.seed_scenarios import SCENARIOS
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT / "data"
 
-RAW_CSV_PATH = DATA_DIR / "raw" / "sales_orders.csv"
-BRONZE_PARQUET_PATH = DATA_DIR / "bronze" / "sales_orders.parquet"
+_PRIMARY = get_source("sales_orders")
+RAW_CSV_PATH = _PRIMARY.raw_path
+BRONZE_PARQUET_PATH = _PRIMARY.bronze_path
 SILVER_PARQUET_PATH = DATA_DIR / "silver" / "sales_orders.parquet"
 GOLD_PARQUET_PATH = DATA_DIR / "gold" / "category_summary.parquet"
 
@@ -89,6 +91,27 @@ def _layer_stats(layer: str) -> dict[str, Any]:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/sources")
+def sources() -> dict[str, Any]:
+    """Raw source contracts: paths, schema names, and freshness SLAs."""
+    from config.sources import check_all_sources_freshness
+
+    freshness = [
+        {
+            "source": result.source,
+            "ok": result.ok,
+            "warnings": list(result.warnings),
+            "errors": list(result.errors),
+            "file_age_hours": result.file_age_hours,
+            "data_age_hours": result.data_age_hours,
+            "checked_at": result.checked_at.isoformat(),
+            "details": result.details,
+        }
+        for result in check_all_sources_freshness()
+    ]
+    return {"sources": summarize_contracts(), "freshness": freshness}
 
 
 @app.get("/api/status")

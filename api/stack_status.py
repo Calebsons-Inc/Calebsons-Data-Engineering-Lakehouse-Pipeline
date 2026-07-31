@@ -9,6 +9,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from config.sources import get_source
+from transformations.seed_scenarios import SCENARIOS, SCENARIOS_DIR
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT / "data"
 WAREHOUSE_PATH = PROJECT_ROOT / "warehouse" / "lakehouse.duckdb"
@@ -58,9 +61,10 @@ def _check_api() -> dict[str, Any]:
 
 
 def _check_layers() -> dict[str, Any]:
+    primary = get_source("sales_orders")
     required = {
-        "raw": DATA_DIR / "raw" / "sales_orders.csv",
-        "bronze": DATA_DIR / "bronze" / "sales_orders.parquet",
+        "raw": primary.raw_path,
+        "bronze": primary.bronze_path,
         "silver": DATA_DIR / "silver" / "sales_orders.parquet",
         "gold": DATA_DIR / "gold" / "category_summary.parquet",
     }
@@ -194,8 +198,6 @@ def _check_dbt() -> dict[str, Any]:
 
 
 def _check_scenarios() -> dict[str, Any]:
-    from transformations.seed_scenarios import SCENARIOS, SCENARIOS_DIR
-
     missing: list[str] = []
     for slug, config in SCENARIOS.items():
         gold = SCENARIOS_DIR / slug / "gold" / config["gold_name"]

@@ -106,6 +106,7 @@ pip install -r requirements-dbt.txt
 ```text
 airflow/                 Airflow DAG definition
 api/                     FastAPI backend for the lakehouse UI
+config/                  Raw source contracts (paths, schemas, freshness SLAs)
 dbt/                     dbt project, profile, and models
 data/raw/                Shared source CSV data
 data/bronze/             Shared bronze Parquet output
@@ -141,7 +142,9 @@ Expected outputs:
 
 What each step does:
 
-- `ingest_raw_to_bronze.py` reads `data/raw/sales_orders.csv`, standardizes column names, and writes bronze Parquet
+- `ingest_raw_to_bronze.py` reads the contracted raw path from `config/sources.py`, standardizes column names, and writes bronze Parquet
+- Source contracts in `config/sources.py` define paths, expected schema column names/types, and freshness SLAs
+- Inspect contracts: `python -m config` or `GET /api/sources`
 - `bronze_to_silver.py` casts types, renames columns, filters inactive and invalid records, and writes silver Parquet
 - `silver_to_gold.py` aggregates by category and writes gold Parquet
 

@@ -11,6 +11,7 @@ A modern data lakehouse pipeline using Airflow, dbt, DuckDB, and a React demo UI
 
 ## Features
 - ETL/ELT workflows
+- Raw source contracts (paths, schemas, freshness SLAs)
 - Data transformations
 - Orchestration
 - BI-ready datasets

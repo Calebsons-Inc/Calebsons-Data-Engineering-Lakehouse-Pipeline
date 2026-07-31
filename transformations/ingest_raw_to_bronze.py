@@ -9,19 +9,23 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from config.sources import get_source  # noqa: E402
 from transformations.lakehouse_utils import (  # noqa: E402
-    BRONZE_PARQUET_PATH,
-    RAW_CSV_PATH,
     clean_column_names,
     ensure_directories,
     refresh_warehouse,
 )
 
 
-def run_ingest_raw_to_bronze() -> Path:
-    ensure_directories()
+def run_ingest_raw_to_bronze(source_name: str = "sales_orders") -> Path:
+    """Land a contracted raw source into bronze Parquet.
 
-    frame = pl.read_csv(RAW_CSV_PATH)
+    Schema validation against the source contract lands in a follow-up change.
+    """
+    ensure_directories()
+    source = get_source(source_name)
+
+    frame = pl.read_csv(source.raw_path)
     frame = clean_column_names(frame)
 
     string_columns = [
@@ -34,9 +38,9 @@ def run_ingest_raw_to_bronze() -> Path:
             [pl.col(column_name).str.strip_chars().alias(column_name) for column_name in string_columns]
         )
 
-    frame.write_parquet(BRONZE_PARQUET_PATH)
+    frame.write_parquet(source.bronze_path)
     refresh_warehouse()
-    return BRONZE_PARQUET_PATH
+    return source.bronze_path
 
 
 def main() -> None:
