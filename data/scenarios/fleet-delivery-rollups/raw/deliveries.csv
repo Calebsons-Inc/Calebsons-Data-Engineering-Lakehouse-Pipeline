@@ -1,0 +1,8 @@
+Shipment ID,Lane,Hub,Freight USD,Status,Ship Date
+DL-01,Austin→Dallas,Central,410.00,delivered,2026-04-01
+DL-02,Austin→Houston,Central,365.00,delivered,2026-04-01
+DL-03,Seattle→Portland,Northwest,290.00,delivered,2026-04-02
+DL-04,Seattle→Boise,Northwest,-25.00,delivered,2026-04-02
+DL-05,Miami→Orlando,Southeast,255.00,failed,2026-04-03
+DL-06,Miami→Tampa,Southeast,240.00,delivered,2026-04-03
+DL-07,Denver→Salt Lake,Mountain,380.00,delivered,2026-04-04

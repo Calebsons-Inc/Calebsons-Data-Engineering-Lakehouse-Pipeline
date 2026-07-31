@@ -24,6 +24,11 @@ warehouse/lakehouse.duckdb.wal
 .venv/
 .venv-airflow/
 .venv-dbt/
+.venv-ui/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
 
 # OS / IDE
 .DS_Store

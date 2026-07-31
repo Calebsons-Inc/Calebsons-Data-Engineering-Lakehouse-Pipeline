@@ -1,0 +1,8 @@
+Sale ID,Store Name,Category,Amount USD,Status,Sale Date
+1,Market Street,Grocery,84.20,active,2026-04-01
+2,Market Street,Grocery,36.50,active,2026-04-01
+3,Harbor Mall,Apparel,129.00,active,2026-04-02
+4,Harbor Mall,Apparel,-12.00,active,2026-04-02
+5,Cedar Plaza,Electronics,499.99,inactive,2026-04-03
+6,Cedar Plaza,Electronics,219.00,active,2026-04-03
+7,Market Street,Home,58.75,active,2026-04-04

@@ -1,0 +1,8 @@
+Appointment ID,Patient Name,Department,Fee USD,Status,Appointment Date
+101,Nora Patel,Primary Care,145.00,active,2026-04-01
+102,Sam Ortiz,Primary Care,145.00,cancelled,2026-04-01
+103,Lee Nguyen,Cardiology,320.00,active,2026-04-02
+104,Ava Brooks,Cardiology,-40.00,active,2026-04-02
+105,Jonah West,Orthopedics,280.00,no_show,2026-04-03
+106,Mia Chen,Orthopedics,280.00,active,2026-04-03
+107,Owen Blake,Dermatology,190.50,active,2026-04-04

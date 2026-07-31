@@ -1,4 +1,4 @@
-# Calebsons Lakehouse Pipeline Walkthrough
+# Calebsons Datalake Pipeline Walkthrough
 
 ## Overview
 
@@ -15,12 +15,52 @@ The pipeline uses:
 - `DuckDB` as the local warehouse and query engine
 - `Airflow` to orchestrate the three pipeline steps
 - `dbt` to build analytics models on top of the DuckDB warehouse
+- `FastAPI` + a Vite React UI to browse lakehouse layers and gold metrics
 
 ### Bronze, Silver, and Gold
 
 - Bronze: raw CSV loaded into Parquet with cleaned column names
 - Silver: typed, renamed, and filtered business-ready rows
 - Gold: aggregated category-level summary for reporting
+
+## Architecture
+
+```mermaid
+flowchart TD
+    SRC[Raw CSV / source files] --> AF[Airflow DAG]
+    AF --> BR[Bronze Parquet]
+    BR --> SV[Silver Parquet]
+    SV --> GD[Gold Parquet]
+    BR --> WH[DuckDB warehouse]
+    SV --> WH
+    GD --> WH
+    WH --> DBT[dbt models]
+    WH --> API[FastAPI]
+    API --> UI[React frontend]
+```
+
+Data lands in raw storage, Airflow runs the bronze → silver → gold transforms, DuckDB exposes the layers for SQL/dbt, and the FastAPI + React UI lets you inspect the same outputs in a browser.
+
+## Real-Life Use Cases
+
+Each demo is a **separate industry scenario** with its own raw → bronze → silver → gold dataset under `data/scenarios/<slug>/`.
+
+Every demo page shows the **same sections** (layer rail, gold chart, raw/bronze/silver tables, gold rollups). Only the industry dataset and labels change.
+
+Seed (or re-seed) all five datasets:
+
+```bash
+source .venv/bin/activate   # or .venv-ui
+python transformations/seed_scenarios.py
+```
+
+1. **Retail POS reporting** (`/demos/retail-pos-reporting`) — POS tickets → category sales.
+2. **Clinic appointment ops** (`/demos/clinic-appointment-ops`) — Appointments → department fees.
+3. **Fleet delivery rollups** (`/demos/fleet-delivery-rollups`) — Shipments → hub freight.
+4. **Payments quality gate** (`/demos/payments-quality-gate`) — Card payments → channel volume.
+5. **SaaS usage onboarding** (`/demos/saas-usage-onboarding`) — Usage events → product seat value.
+
+The shared `/lakehouse` explorer still uses the core sales pipeline under `data/raw|bronze|silver|gold`.
 
 ## Setup Instructions
 
@@ -33,7 +73,7 @@ Use Python `3.11`.
 The project uses three small Python environments:
 
 ```bash
-cd /Users/calebthompson/Documents/2/calebsons/calebsons_inc/calebsons_data_engineering_lakehouse_pipeline
+cd /Users/calebthompson/Documents/2/calebsons/calebsons_inc/datalake
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
@@ -65,14 +105,17 @@ pip install -r requirements-dbt.txt
 
 ```text
 airflow/                 Airflow DAG definition
+api/                     FastAPI backend for the lakehouse UI
 dbt/                     dbt project, profile, and models
-data/raw/                Source CSV data
-data/bronze/             Bronze Parquet output
-data/silver/             Silver Parquet output
-data/gold/               Gold Parquet output
+data/raw/                Shared source CSV data
+data/bronze/             Shared bronze Parquet output
+data/silver/             Shared silver Parquet output
+data/gold/               Shared gold Parquet output
+data/scenarios/          Per-industry demo datasets (raw/bronze/silver/gold)
+frontend/                Vite + React dashboard UI
 transformations/         Python ETL scripts
 warehouse/               DuckDB warehouse utilities and database file
-requirements.txt         Core pipeline dependencies
+requirements.txt         Core pipeline + API dependencies
 requirements-airflow.txt Airflow dependencies
 requirements-dbt.txt     dbt dependencies
 walkthrough.md           This guide
@@ -188,6 +231,104 @@ dbt run --project-dir dbt --profiles-dir dbt
 dbt test --project-dir dbt --profiles-dir dbt
 ```
 
+## Testing the Frontend and Backend
+
+Recommended order: **API + UI first**, then pipeline/Airflow/dbt, then unlock demos.
+
+1. Start FastAPI + React (they work alone and show stack status)
+2. Run lakehouse transforms + DuckDB warehouse
+3. Start Airflow webserver
+4. Run dbt once so `dbt/target/manifest.json` exists
+5. On the home page, wait until every service is green — demos unlock automatically
+
+The UI reads lakehouse Parquet/CSV layers through a small FastAPI app and polls `/api/status` for readiness.
+### Install UI API dependencies
+
+Use a dedicated Python 3.11 env (recommended) or your main `.venv` after `requirements.txt` is installed:
+
+```bash
+cd /Users/calebthompson/Documents/2/calebsons/calebsons_inc/datalake
+python3.11 -m venv .venv-ui
+source .venv-ui/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+Install the frontend packages once:
+
+```bash
+cd frontend
+npm install
+```
+
+### Start the backend API
+
+From the project root, in one terminal:
+
+```bash
+source .venv-ui/bin/activate
+python -m uvicorn api.server:app --reload --port 8000
+```
+
+Quick API checks:
+
+```bash
+curl http://127.0.0.1:8000/api/health
+curl http://127.0.0.1:8000/api/status
+curl http://127.0.0.1:8000/api/overview
+curl http://127.0.0.1:8000/api/gold
+curl "http://127.0.0.1:8000/api/orders?layer=silver"
+```
+
+Expected:
+
+- `/api/health` returns `{"status":"ok"}`
+- `/api/status` lists API, layers, warehouse, Airflow, and dbt with `ok` true/false and `demos_ready`
+- `/api/overview` includes layer row counts plus the same readiness summary
+- `/api/gold` / `/api/orders` work once pipeline files exist
+
+Interactive docs: open `http://127.0.0.1:8000/docs`.
+
+### Start the frontend
+
+In a second terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open `http://127.0.0.1:5173`.
+
+Vite proxies `/api/*` to the backend on port `8000`, so you do not need to hardcode a remote API URL for local testing.
+
+Home (`/`) lists stack readiness and the five use-case demos. Full explorer: `/lakehouse`.
+
+What to verify in the UI:
+
+1. Home loads even if Airflow/dbt are down — status board shows which services are not ready
+2. Demo cards stay **locked** until `/api/status` reports `demos_ready: true` (includes seeded industry scenarios)
+3. After layers, warehouse, scenarios, Airflow (`:8080`), and a dbt run are ready, demos unlock
+4. Each unlocked demo page uses the **same layout** (layers, gold chart, tables, rollups) on **its own industry dataset**:
+   - `/demos/retail-pos-reporting` — retail POS
+   - `/demos/clinic-appointment-ops` — healthcare appointments
+   - `/demos/fleet-delivery-rollups` — logistics shipments
+   - `/demos/payments-quality-gate` — fintech payments
+   - `/demos/saas-usage-onboarding` — SaaS usage
+5. `/lakehouse` still shows the shared sales pipeline counts, gold metrics, and layer table
+
+### Optional one-shot smoke check
+
+With both servers running:
+
+```bash
+curl -s http://127.0.0.1:8000/api/health
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:5173/
+curl -s http://127.0.0.1:5173/api/overview | head -c 200
+```
+
+You should see `ok`, HTTP `200` for the UI, and JSON overview data through the Vite proxy.
+
 ## Querying the Warehouse
 
 Run the provided query script:
@@ -224,6 +365,27 @@ order by category;
 ```
 
 ## Troubleshooting
+
+### Frontend shows “Could not reach the lakehouse API”
+
+Make sure the API is running on port `8000` before (or while) using the UI:
+
+```bash
+source .venv-ui/bin/activate
+uvicorn api.server:app --reload --port 8000
+```
+
+Then confirm:
+
+```bash
+curl http://127.0.0.1:8000/api/health
+```
+
+If port `8000` is already in use, either stop the other process or start the API on another port and update the Vite proxy in `frontend/vite.config.ts`.
+
+### API returns 404 for a layer
+
+Parquet/CSV files are missing. Rerun the pipeline scripts, then hit `/api/overview` again.
 
 ### Airflow import errors
 

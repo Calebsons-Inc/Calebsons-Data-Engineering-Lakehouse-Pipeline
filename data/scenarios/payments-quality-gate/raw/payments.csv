@@ -1,0 +1,8 @@
+Txn ID,Merchant,Channel,Amount USD,Status,Txn Date
+TX-9001,Blue Bottle,In-store,18.40,settled,2026-04-01
+TX-9002,City Transit,Mobile,3.50,settled,2026-04-01
+TX-9003,Northwind Soft,Online,129.00,settled,2026-04-02
+TX-9004,Northwind Soft,Online,-9.99,settled,2026-04-02
+TX-9005,Corner Market,In-store,62.10,reversed,2026-04-03
+TX-9006,Skyline Gym,Mobile,49.00,settled,2026-04-03
+TX-9007,Parcel Box,Online,27.80,settled,2026-04-04

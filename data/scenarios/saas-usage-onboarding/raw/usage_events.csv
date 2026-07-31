@@ -1,0 +1,8 @@
+Event ID,Account Name,Product,Seat Value USD,Status,Event Date
+EV-1,Helio Labs,Analytics,1200.00,active,2026-04-01
+EV-2,Helio Labs,Analytics,1200.00,active,2026-04-01
+EV-3,North Peak,Workflow,850.00,active,2026-04-02
+EV-4,North Peak,Workflow,-100.00,active,2026-04-02
+EV-5,Orbit Co,Support Desk,400.00,churned,2026-04-03
+EV-6,Orbit Co,Support Desk,400.00,active,2026-04-03
+EV-7,Cedar AI,Analytics,1200.00,active,2026-04-04

@@ -1,32 +1,33 @@
-# Calebsons Data Engineering — Lakehouse Pipeline
+# Calebsons Datalake — Lakehouse Pipeline
 
 ## Overview
-A modern data lakehouse pipeline using Airflow/Prefect, dbt, and DuckDB/Delta Lake.
+A modern data lakehouse pipeline using Airflow, dbt, DuckDB, and a React demo UI.
 
 ## Tech Stack
-- Airflow / Prefect
+- Airflow
 - dbt
-- DuckDB / Delta Lake
-- Python
+- DuckDB / Polars
+- FastAPI + Vite React
 
 ## Features
 - ETL/ELT workflows
 - Data transformations
 - Orchestration
 - BI-ready datasets
+- Use-case demo pages in the frontend
 
 ## Architecture
 ```mermaid
 flowchart TD
-    SRC[Data Sources] --> ORCH[Airflow / Prefect]
-    ORCH --> DBT[dbt Transformations]
-    DBT --> LAKE[Lakehouse - DuckDB / Delta Lake]
-    LAKE --> BI[BI Tools / Notebooks]
+    SRC[Data Sources] --> ORCH[Airflow]
+    ORCH --> LAKE[Lakehouse - DuckDB / Parquet]
+    LAKE --> DBT[dbt Transformations]
+    LAKE --> API[FastAPI]
+    API --> UI[React demos]
 ```
 
 ## Setup
-- Install Airflow/Prefect
-- Run dbt seed + run
+See `walkthrough.md` for full install, pipeline, API, and UI steps.
 
 ## Deployment
 - Docker Compose
